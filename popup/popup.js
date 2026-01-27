@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const formatSelect = document.getElementById('format');
   const clickSelectorInput = document.getElementById('clickSelector');
   const scrollWaitInput = document.getElementById('scrollWait');
+  const viewportSelect = document.getElementById('viewport');
   const startBtn = document.getElementById('startBtn');
   const progressSection = document.getElementById('progress');
   const progressFill = document.getElementById('progressFill');
@@ -139,7 +140,8 @@ document.addEventListener('DOMContentLoaded', () => {
       delay: parseInt(delayInput.value, 10) || 1000,
       format: formatSelect.value,
       clickSelector: clickSelectorInput.value.trim() || null,
-      scrollWait: parseInt(scrollWaitInput.value, 10) || 5000
+      scrollWait: parseInt(scrollWaitInput.value, 10) || 5000,
+      viewport: viewportSelect.value
     };
 
     setCapturingState();

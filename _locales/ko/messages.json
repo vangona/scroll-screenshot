@@ -23,6 +23,18 @@
   "scrollWaitLabel": {
     "message": "스크롤 후 대기 (ms):"
   },
+  "viewportLabel": {
+    "message": "화면 크기:"
+  },
+  "viewportPc": {
+    "message": "PC (1920px)"
+  },
+  "viewportTablet": {
+    "message": "태블릿 (768px)"
+  },
+  "viewportMobile": {
+    "message": "모바일 (375px)"
+  },
   "startCapture": {
     "message": "캡처 시작"
   },

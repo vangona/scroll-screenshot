@@ -23,6 +23,18 @@
   "scrollWaitLabel": {
     "message": "Wait after scroll (ms):"
   },
+  "viewportLabel": {
+    "message": "Screen size:"
+  },
+  "viewportPc": {
+    "message": "PC (1920px)"
+  },
+  "viewportTablet": {
+    "message": "Tablet (768px)"
+  },
+  "viewportMobile": {
+    "message": "Mobile (375px)"
+  },
   "startCapture": {
     "message": "Start Capture"
   },

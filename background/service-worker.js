@@ -88,6 +88,13 @@ function waitForNetworkIdle(tabId, idleTime = 500, timeout = 5000) {
   });
 }
 
+// Viewport presets: width, height, deviceScaleFactor, mobile
+const VIEWPORT_PRESETS = {
+  pc:     { width: 1920, height: 1080, deviceScaleFactor: 1, mobile: false },
+  tablet: { width: 768,  height: 1024, deviceScaleFactor: 2, mobile: true },
+  mobile: { width: 375,  height: 812,  deviceScaleFactor: 3, mobile: true }
+};
+
 // Generate filename from URL
 function generateFilename(url, format) {
   try {
@@ -155,6 +162,20 @@ async function captureScreenshot(url, options) {
 
     await sendDebuggerCommand(tabId, 'Page.enable');
     await sendDebuggerCommand(tabId, 'Network.enable');
+
+    // Set viewport size based on device preset
+    const preset = VIEWPORT_PRESETS[options.viewport] || VIEWPORT_PRESETS.pc;
+    await sendDebuggerCommand(tabId, 'Emulation.setDeviceMetricsOverride', {
+      width: preset.width,
+      height: preset.height,
+      deviceScaleFactor: preset.deviceScaleFactor,
+      mobile: preset.mobile
+    });
+
+    // Reload page so it re-renders at the new viewport size
+    await sendDebuggerCommand(tabId, 'Page.reload');
+    await waitForPageLoad(tabId);
+    await delay(options.delay);
 
     // Step 1: Detect scroll container type
     let scrollContainerType = 'document'; // 'document' or 'element'
@@ -347,12 +368,12 @@ async function captureScreenshot(url, options) {
     const width = Math.ceil(metrics.contentSize.width);
     const height = Math.min(Math.ceil(metrics.contentSize.height), 16384); // Max 16384px
 
-    // Set device metrics to capture full page
+    // Set device metrics to capture full page (preserve viewport preset settings)
     await sendDebuggerCommand(tabId, 'Emulation.setDeviceMetricsOverride', {
       width: width,
       height: height,
-      deviceScaleFactor: 1,
-      mobile: false
+      deviceScaleFactor: preset.deviceScaleFactor,
+      mobile: preset.mobile
     });
 
     // Small delay for rendering

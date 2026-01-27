@@ -20,6 +20,9 @@
   "clickSelectorLabel": {
     "message": "Click selector (optional):"
   },
+  "scrollWaitLabel": {
+    "message": "Wait after scroll (ms):"
+  },
   "startCapture": {
     "message": "Start Capture"
   },

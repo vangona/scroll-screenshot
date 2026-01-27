@@ -20,6 +20,9 @@
   "clickSelectorLabel": {
     "message": "클릭 셀렉터 (선택사항):"
   },
+  "scrollWaitLabel": {
+    "message": "스크롤 후 대기 (ms):"
+  },
   "startCapture": {
     "message": "캡처 시작"
   },

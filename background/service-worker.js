@@ -284,8 +284,9 @@ async function captureScreenshot(url, options) {
     }
 
     // Step 3: Wait for network idle after scroll-triggered lazy loading
+    const scrollWait = options.scrollWait ?? 5000;
     try {
-      await waitForNetworkIdle(tabId, 500, 5000);
+      await waitForNetworkIdle(tabId, 500, scrollWait);
     } catch (e) {
       console.warn('[ScrollScreenshot] Network idle wait failed:', e.message);
     }

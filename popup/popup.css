@@ -51,14 +51,13 @@ h1 {
 }
 
 .options-section {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 12px 16px;
   margin-bottom: 16px;
 }
 
 .option {
-  flex: 1;
 }
 
 .option label {

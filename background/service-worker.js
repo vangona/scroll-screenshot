@@ -90,9 +90,11 @@ function waitForNetworkIdle(tabId, idleTime = 500, timeout = 5000) {
 
 // Viewport presets: width, height, deviceScaleFactor, mobile
 const VIEWPORT_PRESETS = {
-  pc:     { width: 1920, height: 1080, deviceScaleFactor: 1, mobile: false },
-  tablet: { width: 768,  height: 1024, deviceScaleFactor: 2, mobile: true },
-  mobile: { width: 375,  height: 812,  deviceScaleFactor: 3, mobile: true }
+  pc:     { width: 1920, height: 1080, deviceScaleFactor: 1, mobile: false, userAgent: '' },
+  tablet: { width: 768,  height: 1024, deviceScaleFactor: 2, mobile: true,
+            userAgent: 'Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1' },
+  mobile: { width: 375,  height: 812,  deviceScaleFactor: 3, mobile: true,
+            userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1' }
 };
 
 // Generate filename from URL
@@ -161,6 +163,13 @@ async function captureScreenshot(url, options) {
       deviceScaleFactor: preset.deviceScaleFactor,
       mobile: preset.mobile
     });
+
+    // Set mobile User-Agent so server-side rendering returns mobile layout
+    if (preset.userAgent) {
+      await sendDebuggerCommand(tabId, 'Emulation.setUserAgentOverride', {
+        userAgent: preset.userAgent
+      });
+    }
 
     // Reload page so it re-renders at the new viewport size
     // Use CDP Page.loadEventFired instead of chrome.tabs.onUpdated to avoid race condition

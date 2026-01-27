@@ -205,6 +205,25 @@ async function captureScreenshot(url, options) {
     }
     checkStopped();
 
+    // Re-check click selector before scrolling (banner may have reappeared after reload)
+    if (options.clickSelector) {
+      try {
+        const [result] = await chrome.scripting.executeScript({
+          target: { tabId },
+          func: (selector) => {
+            const el = document.querySelector(selector);
+            if (el) { el.click(); return true; }
+            return false;
+          },
+          args: [options.clickSelector]
+        });
+        if (result?.result) await delay(500);
+      } catch (e) {
+        // Ignore selector click errors
+      }
+    }
+    checkStopped();
+
     // Step 1: Detect scroll container type
     let scrollContainerType = 'document'; // 'document' or 'element'
     try {

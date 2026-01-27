@@ -41,6 +41,53 @@ function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+// Wait for network idle using CDP Network events
+function waitForNetworkIdle(tabId, idleTime = 500, timeout = 5000) {
+  return new Promise((resolve) => {
+    let pendingRequests = 0;
+    let idleTimer = null;
+    let timeoutTimer = null;
+
+    const checkIdle = () => {
+      if (pendingRequests <= 0) {
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => {
+          cleanup();
+          resolve();
+        }, idleTime);
+      }
+    };
+
+    const onEvent = (source, method) => {
+      if (source.tabId !== tabId) return;
+      if (method === 'Network.requestWillBeSent') {
+        pendingRequests++;
+        clearTimeout(idleTimer);
+      } else if (method === 'Network.loadingFinished' || method === 'Network.loadingFailed') {
+        pendingRequests = Math.max(0, pendingRequests - 1);
+        checkIdle();
+      }
+    };
+
+    const cleanup = () => {
+      chrome.debugger.onEvent.removeListener(onEvent);
+      clearTimeout(timeoutTimer);
+      clearTimeout(idleTimer);
+    };
+
+    chrome.debugger.onEvent.addListener(onEvent);
+
+    // Hard timeout
+    timeoutTimer = setTimeout(() => {
+      cleanup();
+      resolve();
+    }, timeout);
+
+    // Start idle check immediately
+    checkIdle();
+  });
+}
+
 // Generate filename from URL
 function generateFilename(url, format) {
   try {
@@ -94,6 +141,21 @@ async function captureScreenshot(url, options) {
       }
     }
 
+    // Attach debugger early (before scroll) to enable Network tracking
+    await new Promise((resolve, reject) => {
+      chrome.debugger.attach({ tabId }, '1.3', () => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+        } else {
+          debuggerAttached = true;
+          resolve();
+        }
+      });
+    });
+
+    await sendDebuggerCommand(tabId, 'Page.enable');
+    await sendDebuggerCommand(tabId, 'Network.enable');
+
     // Step 1: Detect scroll container type
     let scrollContainerType = 'document'; // 'document' or 'element'
     try {
@@ -121,7 +183,9 @@ async function captureScreenshot(url, options) {
         }
       });
       scrollContainerType = detection.result || 'document';
-    } catch (e) { /* ignore */ }
+    } catch (e) {
+      console.warn('[ScrollScreenshot] Scroll container detection failed:', e.message);
+    }
 
     // Step 2: Scroll simulation to trigger IntersectionObserver lazy-loading
     try {
@@ -129,6 +193,51 @@ async function captureScreenshot(url, options) {
         target: { tabId },
         func: async (containerType) => {
           const wait = (ms) => new Promise(r => setTimeout(r, ms));
+
+          // Wait for DOM mutations to settle
+          function waitForDomSettle(timeout = 500) {
+            return new Promise(resolve => {
+              let timer = null;
+              const observer = new MutationObserver(() => {
+                clearTimeout(timer);
+                timer = setTimeout(() => {
+                  observer.disconnect();
+                  resolve();
+                }, 200);
+              });
+              observer.observe(document.body, { childList: true, subtree: true });
+              timer = setTimeout(() => {
+                observer.disconnect();
+                resolve();
+              }, timeout);
+            });
+          }
+
+          // Wait for images visible in the current viewport to load
+          function waitForVisibleImages(scrollTarget, timeout = 2000) {
+            const images = document.querySelectorAll('img');
+            const pending = [];
+            for (const img of images) {
+              const rect = img.getBoundingClientRect();
+              if (rect.bottom >= 0 && rect.top <= scrollTarget.clientHeight) {
+                if (!img.complete || img.naturalWidth === 0) {
+                  pending.push(img);
+                }
+              }
+            }
+            if (pending.length === 0) return Promise.resolve();
+            const deadline = Date.now() + timeout;
+            return Promise.all(pending.map(img => {
+              return new Promise(resolve => {
+                if (img.complete && img.naturalWidth > 0) return resolve();
+                const onDone = () => resolve();
+                img.addEventListener('load', onDone, { once: true });
+                img.addEventListener('error', onDone, { once: true });
+                setTimeout(onDone, Math.max(deadline - Date.now(), 0));
+              });
+            }));
+          }
+
           let scrollTarget;
           if (containerType === 'element') {
             scrollTarget = document.querySelector('[data-scroll-capture-target]');
@@ -137,23 +246,73 @@ async function captureScreenshot(url, options) {
           }
           if (!scrollTarget) return;
 
-          const step = scrollTarget.clientHeight;
-          const maxScroll = scrollTarget.scrollHeight;
+          const step = Math.max(Math.floor(scrollTarget.clientHeight / 2), 100);
+          let maxScroll = scrollTarget.scrollHeight;
           let pos = 0;
+
           while (pos < maxScroll) {
-            pos += step;
+            pos = Math.min(pos + step, maxScroll);
             scrollTarget.scrollTop = pos;
-            await wait(250);
+
+            // Wait for IntersectionObserver callbacks to fire
+            await wait(100);
+            // Wait for DOM to settle (lazy-loaded content injection)
+            await waitForDomSettle(500);
+            // Wait for visible images to load
+            await waitForVisibleImages(scrollTarget, 2000);
+
+            // Re-check scrollHeight in case content was added
+            const newMax = scrollTarget.scrollHeight;
+            if (newMax > maxScroll + 50) {
+              maxScroll = newMax;
+            }
           }
+
+          // Ensure last elements are triggered
+          scrollTarget.scrollTop = scrollTarget.scrollHeight;
+          await wait(100);
+          await waitForVisibleImages(scrollTarget, 2000);
+
           // Return to top
           scrollTarget.scrollTop = 0;
-          await wait(200);
+          await wait(500);
         },
         args: [scrollContainerType]
       });
-    } catch (e) { /* ignore */ }
+    } catch (e) {
+      console.warn('[ScrollScreenshot] Scroll simulation failed:', e.message);
+    }
 
-    // Step 3: Expand non-document scroll containers via CSS
+    // Step 3: Wait for network idle after scroll-triggered lazy loading
+    try {
+      await waitForNetworkIdle(tabId, 500, 5000);
+    } catch (e) {
+      console.warn('[ScrollScreenshot] Network idle wait failed:', e.message);
+    }
+
+    // Step 4: Final verification - wait for all images on the page to load
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId },
+        func: async () => {
+          const images = Array.from(document.querySelectorAll('img'));
+          const pending = images.filter(img => !img.complete || img.naturalWidth === 0);
+          if (pending.length === 0) return;
+          await Promise.all(pending.map(img => {
+            return new Promise(resolve => {
+              if (img.complete && img.naturalWidth > 0) return resolve();
+              img.addEventListener('load', resolve, { once: true });
+              img.addEventListener('error', resolve, { once: true });
+              setTimeout(resolve, 3000);
+            });
+          }));
+        }
+      });
+    } catch (e) {
+      console.warn('[ScrollScreenshot] Final image verification failed:', e.message);
+    }
+
+    // Step 5: Expand non-document scroll containers via CSS
     if (scrollContainerType === 'element') {
       try {
         await chrome.scripting.executeScript({
@@ -175,23 +334,10 @@ async function captureScreenshot(url, options) {
           }
         });
         await delay(300);
-      } catch (e) { /* ignore */ }
+      } catch (e) {
+        console.warn('[ScrollScreenshot] CSS expansion failed:', e.message);
+      }
     }
-
-    // Attach debugger
-    await new Promise((resolve, reject) => {
-      chrome.debugger.attach({ tabId }, '1.3', () => {
-        if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message));
-        } else {
-          debuggerAttached = true;
-          resolve();
-        }
-      });
-    });
-
-    // Enable Page domain
-    await sendDebuggerCommand(tabId, 'Page.enable');
 
     // Get page layout metrics
     const metrics = await sendDebuggerCommand(tabId, 'Page.getLayoutMetrics');

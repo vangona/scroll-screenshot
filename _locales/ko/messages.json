@@ -21,7 +21,7 @@
     "message": "클릭 셀렉터 (선택사항):"
   },
   "scrollWaitLabel": {
-    "message": "스크롤 후 대기 (ms):"
+    "message": "스크롤 대기 (ms):"
   },
   "viewportLabel": {
     "message": "화면 크기:"

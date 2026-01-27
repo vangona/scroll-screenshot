@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
       delay: parseInt(delayInput.value, 10) || 1000,
       format: formatSelect.value,
       clickSelector: clickSelectorInput.value.trim() || null,
-      scrollWait: parseInt(scrollWaitInput.value, 10) || 5000,
+      scrollWait: parseInt(scrollWaitInput.value, 10) || 500,
       viewport: viewportSelect.value
     };
 

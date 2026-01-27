@@ -212,11 +212,11 @@ async function captureScreenshot(url, options) {
     try {
       await chrome.scripting.executeScript({
         target: { tabId },
-        func: async (containerType) => {
+        func: async (containerType, scrollWaitMs) => {
           const wait = (ms) => new Promise(r => setTimeout(r, ms));
 
           // Wait for DOM mutations to settle
-          function waitForDomSettle(timeout = 500) {
+          function waitForDomSettle(timeout = scrollWaitMs) {
             return new Promise(resolve => {
               let timer = null;
               const observer = new MutationObserver(() => {
@@ -298,16 +298,15 @@ async function captureScreenshot(url, options) {
           scrollTarget.scrollTop = 0;
           await wait(500);
         },
-        args: [scrollContainerType]
+        args: [scrollContainerType, options.scrollWait ?? 500]
       });
     } catch (e) {
       console.warn('[ScrollScreenshot] Scroll simulation failed:', e.message);
     }
 
     // Step 3: Wait for network idle after scroll-triggered lazy loading
-    const scrollWait = options.scrollWait ?? 5000;
     try {
-      await waitForNetworkIdle(tabId, 500, scrollWait);
+      await waitForNetworkIdle(tabId, 500, 5000);
     } catch (e) {
       console.warn('[ScrollScreenshot] Network idle wait failed:', e.message);
     }

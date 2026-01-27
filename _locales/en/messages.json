@@ -21,7 +21,7 @@
     "message": "Click selector (optional):"
   },
   "scrollWaitLabel": {
-    "message": "Wait after scroll (ms):"
+    "message": "Scroll wait (ms):"
   },
   "viewportLabel": {
     "message": "Screen size:"

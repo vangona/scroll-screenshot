@@ -118,6 +118,13 @@ async function captureScreenshot(url, options) {
   let tabId = null;
   let debuggerAttached = false;
 
+  // Helper to abort early if stop was requested
+  function checkStopped() {
+    if (captureState.isStopped) {
+      throw new Error('STOPPED_BY_USER');
+    }
+  }
+
   try {
     // Create new tab
     const tab = await chrome.tabs.create({ url, active: false });
@@ -125,9 +132,11 @@ async function captureScreenshot(url, options) {
 
     // Wait for page to load
     await waitForPageLoad(tabId);
+    checkStopped();
 
     // Additional delay for dynamic content
     await delay(options.delay);
+    checkStopped();
 
     // Attach debugger early (before scroll) to enable Network tracking
     await new Promise((resolve, reject) => {
@@ -154,9 +163,19 @@ async function captureScreenshot(url, options) {
     });
 
     // Reload page so it re-renders at the new viewport size
-    await sendDebuggerCommand(tabId, 'Page.reload');
-    await waitForPageLoad(tabId);
+    // Use CDP Page.loadEventFired instead of chrome.tabs.onUpdated to avoid race condition
+    await new Promise((resolve) => {
+      const onEvent = (source, method) => {
+        if (source.tabId === tabId && method === 'Page.loadEventFired') {
+          chrome.debugger.onEvent.removeListener(onEvent);
+          resolve();
+        }
+      };
+      chrome.debugger.onEvent.addListener(onEvent);
+      sendDebuggerCommand(tabId, 'Page.reload');
+    });
     await delay(options.delay);
+    checkStopped();
 
     // Click CSS selector element if specified (after viewport resize + reload)
     if (options.clickSelector) {
@@ -175,6 +194,7 @@ async function captureScreenshot(url, options) {
         // Ignore selector click errors (element may not exist)
       }
     }
+    checkStopped();
 
     // Step 1: Detect scroll container type
     let scrollContainerType = 'document'; // 'document' or 'element'
@@ -303,12 +323,15 @@ async function captureScreenshot(url, options) {
       console.warn('[ScrollScreenshot] Scroll simulation failed:', e.message);
     }
 
+    checkStopped();
+
     // Step 3: Wait for network idle after scroll-triggered lazy loading
     try {
       await waitForNetworkIdle(tabId, 500, 5000);
     } catch (e) {
       console.warn('[ScrollScreenshot] Network idle wait failed:', e.message);
     }
+    checkStopped();
 
     // Step 4: Final verification - wait for all images on the page to load
     try {
@@ -488,6 +511,11 @@ async function handleCaptureRequest(urls, options) {
         { remainingQueue: [...captureState.queue] }
       );
     } catch (error) {
+      if (error.message === 'STOPPED_BY_USER') {
+        // Re-add URL back to queue since it wasn't completed
+        captureState.queue.unshift(url);
+        break;
+      }
       captureState.totalProcessed++;
       results.push({ url, success: false, error: error.message });
       await notifyProgress(

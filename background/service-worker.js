@@ -129,25 +129,6 @@ async function captureScreenshot(url, options) {
     // Additional delay for dynamic content
     await delay(options.delay);
 
-    // Click CSS selector element if specified
-    if (options.clickSelector) {
-      try {
-        await chrome.scripting.executeScript({
-          target: { tabId },
-          func: (selector) => {
-            const el = document.querySelector(selector);
-            if (el) el.click();
-            return !!el;
-          },
-          args: [options.clickSelector]
-        });
-        // Wait for DOM changes after click
-        await delay(500);
-      } catch (e) {
-        // Ignore selector click errors (element may not exist)
-      }
-    }
-
     // Attach debugger early (before scroll) to enable Network tracking
     await new Promise((resolve, reject) => {
       chrome.debugger.attach({ tabId }, '1.3', () => {
@@ -176,6 +157,24 @@ async function captureScreenshot(url, options) {
     await sendDebuggerCommand(tabId, 'Page.reload');
     await waitForPageLoad(tabId);
     await delay(options.delay);
+
+    // Click CSS selector element if specified (after viewport resize + reload)
+    if (options.clickSelector) {
+      try {
+        await chrome.scripting.executeScript({
+          target: { tabId },
+          func: (selector) => {
+            const el = document.querySelector(selector);
+            if (el) el.click();
+            return !!el;
+          },
+          args: [options.clickSelector]
+        });
+        await delay(500);
+      } catch (e) {
+        // Ignore selector click errors (element may not exist)
+      }
+    }
 
     // Step 1: Detect scroll container type
     let scrollContainerType = 'document'; // 'document' or 'element'

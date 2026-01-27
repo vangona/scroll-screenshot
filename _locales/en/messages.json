@@ -1,0 +1,148 @@
+{
+  "extName": {
+    "message": "Full Page Screenshot"
+  },
+  "extDescription": {
+    "message": "Capture full-page screenshots from a list of URLs"
+  },
+  "title": {
+    "message": "Full Page Screenshot"
+  },
+  "urlLabel": {
+    "message": "URLs (one per line):"
+  },
+  "delayLabel": {
+    "message": "Wait after load (ms):"
+  },
+  "formatLabel": {
+    "message": "Format:"
+  },
+  "clickSelectorLabel": {
+    "message": "Click selector (optional):"
+  },
+  "startCapture": {
+    "message": "Start Capture"
+  },
+  "stop": {
+    "message": "Stop"
+  },
+  "stopping": {
+    "message": "Stopping..."
+  },
+  "pendingUrls": {
+    "message": "Pending URLs:"
+  },
+  "noPendingUrls": {
+    "message": "No pending URLs"
+  },
+  "updateQueue": {
+    "message": "Update Queue"
+  },
+  "addUrlsLabel": {
+    "message": "Add URLs:"
+  },
+  "addUrlsPlaceholder": {
+    "message": "Enter URLs to add (one per line)"
+  },
+  "addToQueue": {
+    "message": "Add to Queue"
+  },
+  "alertNoUrl": {
+    "message": "Please enter at least one valid URL"
+  },
+  "alertNoAddUrl": {
+    "message": "Please enter at least one valid URL to add"
+  },
+  "logStartCapture": {
+    "message": "Starting capture of $COUNT$ URL(s)...",
+    "placeholders": {
+      "count": { "content": "$1" }
+    }
+  },
+  "logStopRequested": {
+    "message": "Stop requested. Waiting for current capture to finish..."
+  },
+  "logStopError": {
+    "message": "Stop error: $ERROR$",
+    "placeholders": {
+      "error": { "content": "$1" }
+    }
+  },
+  "logStopped": {
+    "message": "Capture stopped."
+  },
+  "logAllCompleted": {
+    "message": "All captures completed!"
+  },
+  "logCaptureFinished": {
+    "message": "Capture finished: $ERROR$",
+    "placeholders": {
+      "error": { "content": "$1" }
+    }
+  },
+  "logError": {
+    "message": "Error: $ERROR$",
+    "placeholders": {
+      "error": { "content": "$1" }
+    }
+  },
+  "logQueueUpdated": {
+    "message": "Queue updated: $COUNT$ URL(s) remaining.",
+    "placeholders": {
+      "count": { "content": "$1" }
+    }
+  },
+  "logUpdateFailed": {
+    "message": "Update failed: $ERROR$",
+    "placeholders": {
+      "error": { "content": "$1" }
+    }
+  },
+  "logUpdateError": {
+    "message": "Update error: $ERROR$",
+    "placeholders": {
+      "error": { "content": "$1" }
+    }
+  },
+  "logAdded": {
+    "message": "Added $COUNT$ URL(s) to queue. Total remaining: $REMAINING$",
+    "placeholders": {
+      "count": { "content": "$1" },
+      "remaining": { "content": "$2" }
+    }
+  },
+  "logAddFailed": {
+    "message": "Add failed: $ERROR$",
+    "placeholders": {
+      "error": { "content": "$1" }
+    }
+  },
+  "logAddError": {
+    "message": "Add error: $ERROR$",
+    "placeholders": {
+      "error": { "content": "$1" }
+    }
+  },
+  "bgStoppedByUser": {
+    "message": "Capture stopped by user."
+  },
+  "bgCapturing": {
+    "message": "Capturing: $URL$",
+    "placeholders": {
+      "url": { "content": "$1" }
+    }
+  },
+  "bgSaved": {
+    "message": "Saved: $FILENAME$",
+    "placeholders": {
+      "filename": { "content": "$1" }
+    }
+  },
+  "bgFailed": {
+    "message": "Failed: $URL$ - $ERROR$",
+    "placeholders": {
+      "url": { "content": "$1" },
+      "error": { "content": "$2" }
+    }
+  }
+}

@@ -1,0 +1,148 @@
+{
+  "extName": {
+    "message": "전체 페이지 스크린샷"
+  },
+  "extDescription": {
+    "message": "URL 목록에서 전체 페이지 스크린샷을 캡처합니다"
+  },
+  "title": {
+    "message": "전체 페이지 스크린샷"
+  },
+  "urlLabel": {
+    "message": "URL 목록 (줄바꿈으로 구분):"
+  },
+  "delayLabel": {
+    "message": "로드 후 대기 (ms):"
+  },
+  "formatLabel": {
+    "message": "포맷:"
+  },
+  "clickSelectorLabel": {
+    "message": "클릭 셀렉터 (선택사항):"
+  },
+  "startCapture": {
+    "message": "캡처 시작"
+  },
+  "stop": {
+    "message": "중지"
+  },
+  "stopping": {
+    "message": "중지 중..."
+  },
+  "pendingUrls": {
+    "message": "대기 중인 URL:"
+  },
+  "noPendingUrls": {
+    "message": "대기 중인 URL 없음"
+  },
+  "updateQueue": {
+    "message": "대기열 수정"
+  },
+  "addUrlsLabel": {
+    "message": "URL 추가:"
+  },
+  "addUrlsPlaceholder": {
+    "message": "추가할 URL 입력 (줄바꿈으로 구분)"
+  },
+  "addToQueue": {
+    "message": "대기열에 추가"
+  },
+  "alertNoUrl": {
+    "message": "유효한 URL을 하나 이상 입력해주세요"
+  },
+  "alertNoAddUrl": {
+    "message": "추가할 유효한 URL을 하나 이상 입력해주세요"
+  },
+  "logStartCapture": {
+    "message": "$COUNT$개 URL 캡처 시작...",
+    "placeholders": {
+      "count": { "content": "$1" }
+    }
+  },
+  "logStopRequested": {
+    "message": "중지 요청됨. 현재 캡처 완료 대기 중..."
+  },
+  "logStopError": {
+    "message": "중지 오류: $ERROR$",
+    "placeholders": {
+      "error": { "content": "$1" }
+    }
+  },
+  "logStopped": {
+    "message": "캡처가 중지되었습니다."
+  },
+  "logAllCompleted": {
+    "message": "모든 캡처가 완료되었습니다!"
+  },
+  "logCaptureFinished": {
+    "message": "캡처 완료: $ERROR$",
+    "placeholders": {
+      "error": { "content": "$1" }
+    }
+  },
+  "logError": {
+    "message": "오류: $ERROR$",
+    "placeholders": {
+      "error": { "content": "$1" }
+    }
+  },
+  "logQueueUpdated": {
+    "message": "대기열 수정됨: $COUNT$개 URL 남음",
+    "placeholders": {
+      "count": { "content": "$1" }
+    }
+  },
+  "logUpdateFailed": {
+    "message": "수정 실패: $ERROR$",
+    "placeholders": {
+      "error": { "content": "$1" }
+    }
+  },
+  "logUpdateError": {
+    "message": "수정 오류: $ERROR$",
+    "placeholders": {
+      "error": { "content": "$1" }
+    }
+  },
+  "logAdded": {
+    "message": "$COUNT$개 URL 추가됨. 남은 대기열: $REMAINING$개",
+    "placeholders": {
+      "count": { "content": "$1" },
+      "remaining": { "content": "$2" }
+    }
+  },
+  "logAddFailed": {
+    "message": "추가 실패: $ERROR$",
+    "placeholders": {
+      "error": { "content": "$1" }
+    }
+  },
+  "logAddError": {
+    "message": "추가 오류: $ERROR$",
+    "placeholders": {
+      "error": { "content": "$1" }
+    }
+  },
+  "bgStoppedByUser": {
+    "message": "사용자에 의해 캡처가 중지되었습니다."
+  },
+  "bgCapturing": {
+    "message": "캡처 중: $URL$",
+    "placeholders": {
+      "url": { "content": "$1" }
+    }
+  },
+  "bgSaved": {
+    "message": "저장 완료: $FILENAME$",
+    "placeholders": {
+      "filename": { "content": "$1" }
+    }
+  },
+  "bgFailed": {
+    "message": "실패: $URL$ - $ERROR$",
+    "placeholders": {
+      "url": { "content": "$1" },
+      "error": { "content": "$2" }
+    }
+  }
+}

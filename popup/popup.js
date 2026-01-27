@@ -14,6 +14,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const addUrls = document.getElementById('addUrls');
   const addQueueBtn = document.getElementById('addQueueBtn');
 
+  const msg = chrome.i18n.getMessage;
+
+  // Apply i18n to DOM elements
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = msg(el.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = msg(el.dataset.i18nPlaceholder);
+  });
+
   let isCapturing = false;
 
   // Sync state with background on popup open
@@ -78,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function setCapturingState() {
     isCapturing = true;
     startBtn.disabled = false;
-    startBtn.textContent = 'Stop';
+    startBtn.textContent = msg('stop');
     startBtn.classList.add('stop-mode');
     progressSection.style.display = 'block';
     queueSection.style.display = 'block';
@@ -88,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function setIdleState() {
     isCapturing = false;
     startBtn.disabled = false;
-    startBtn.textContent = 'Start Capture';
+    startBtn.textContent = msg('startCapture');
     startBtn.classList.remove('stop-mode');
     queueSection.style.display = 'none';
   }
@@ -98,12 +108,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isCapturing) {
       // Stop capture
       startBtn.disabled = true;
-      startBtn.textContent = 'Stopping...';
+      startBtn.textContent = msg('stopping');
       try {
         await chrome.runtime.sendMessage({ action: 'stopCapture' });
-        addLog('Stop requested. Waiting for current capture to finish...', 'info');
+        addLog(msg('logStopRequested'), 'info');
       } catch (error) {
-        addLog(`Stop error: ${error.message}`, 'error');
+        addLog(msg('logStopError', [error.message]), 'error');
       }
       // If this popup didn't initiate the capture, transition to idle after stop
       setTimeout(async () => {
@@ -120,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const urls = parseUrls(urlsInput.value);
 
     if (urls.length === 0) {
-      alert('Please enter at least one valid URL');
+      alert(msg('alertNoUrl'));
       return;
     }
 
@@ -135,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateProgress(0, urls.length);
     addUrls.value = '';
 
-    addLog(`Starting capture of ${urls.length} URL(s)...`, 'info');
+    addLog(msg('logStartCapture', [String(urls.length)]), 'info');
 
     try {
       // Send message to background script
@@ -146,14 +156,14 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       if (response.stopped) {
-        addLog('Capture stopped.', 'info');
+        addLog(msg('logStopped'), 'info');
       } else if (response.success) {
-        addLog('All captures completed!', 'success');
+        addLog(msg('logAllCompleted'), 'success');
       } else {
-        addLog(`Capture finished: ${response.error}`, 'error');
+        addLog(msg('logCaptureFinished', [response.error]), 'error');
       }
     } catch (error) {
-      addLog(`Error: ${error.message}`, 'error');
+      addLog(msg('logError', [error.message]), 'error');
     }
 
     setIdleState();
@@ -168,13 +178,13 @@ document.addEventListener('DOMContentLoaded', () => {
         urls: urls
       });
       if (response.success) {
-        addLog(`Queue updated: ${response.queueLength} URL(s) remaining.`, 'info');
+        addLog(msg('logQueueUpdated', [String(response.queueLength)]), 'info');
         updateProgress(response.total - response.queueLength, response.total);
       } else {
-        addLog(`Update failed: ${response.error}`, 'error');
+        addLog(msg('logUpdateFailed', [response.error]), 'error');
       }
     } catch (error) {
-      addLog(`Update error: ${error.message}`, 'error');
+      addLog(msg('logUpdateError', [error.message]), 'error');
     }
   });
 
@@ -182,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
   addQueueBtn.addEventListener('click', async () => {
     const urls = parseUrls(addUrls.value);
     if (urls.length === 0) {
-      alert('Please enter at least one valid URL to add');
+      alert(msg('alertNoAddUrl'));
       return;
     }
     try {
@@ -192,13 +202,13 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       if (response.success) {
         addUrls.value = '';
-        addLog(`Added ${urls.length} URL(s) to queue. Total remaining: ${response.queueLength}`, 'info');
+        addLog(msg('logAdded', [String(urls.length), String(response.queueLength)]), 'info');
         updateProgress(response.total - response.queueLength, response.total);
       } else {
-        addLog(`Add failed: ${response.error}`, 'error');
+        addLog(msg('logAddFailed', [response.error]), 'error');
       }
     } catch (error) {
-      addLog(`Add error: ${error.message}`, 'error');
+      addLog(msg('logAddError', [error.message]), 'error');
     }
   });
 
@@ -211,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateQueueDisplay(message.remainingQueue);
       }
       // Detect capture stopped or completed
-      if (message.message === 'Capture stopped by user.' ||
+      if (message.message === msg('bgStoppedByUser') ||
           (message.current === message.total && message.total > 0 && (!message.remainingQueue || message.remainingQueue.length === 0))) {
         setIdleState();
       }

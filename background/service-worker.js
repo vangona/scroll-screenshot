@@ -273,6 +273,8 @@ function getTotalCount() {
   return captureState.totalProcessed + captureState.queue.length;
 }
 
+const msg = chrome.i18n.getMessage;
+
 // Handle capture request
 async function handleCaptureRequest(urls, options) {
   const results = [];
@@ -290,7 +292,7 @@ async function handleCaptureRequest(urls, options) {
       await notifyProgress(
         captureState.totalProcessed,
         getTotalCount(),
-        'Capture stopped by user.',
+        msg('bgStoppedByUser'),
         'info',
         { remainingQueue: [...captureState.queue] }
       );
@@ -303,7 +305,7 @@ async function handleCaptureRequest(urls, options) {
     await notifyProgress(
       captureState.totalProcessed,
       total,
-      `Capturing: ${url}`,
+      msg('bgCapturing', [url]),
       'info',
       { remainingQueue: [...captureState.queue] }
     );
@@ -315,7 +317,7 @@ async function handleCaptureRequest(urls, options) {
       await notifyProgress(
         captureState.totalProcessed,
         getTotalCount(),
-        `Saved: ${result.filename}`,
+        msg('bgSaved', [result.filename]),
         'success',
         { remainingQueue: [...captureState.queue] }
       );
@@ -325,7 +327,7 @@ async function handleCaptureRequest(urls, options) {
       await notifyProgress(
         captureState.totalProcessed,
         getTotalCount(),
-        `Failed: ${url} - ${error.message}`,
+        msg('bgFailed', [url, error.message]),
         'error',
         { remainingQueue: [...captureState.queue] }
       );
